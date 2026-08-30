@@ -4,6 +4,12 @@ project(ftpd VERSION 3.2.1)
 
 set(FTPD_PATCH "-2")
 
+if(NINTENDO_DS)
+	set(FTPD_STATUS_STRING "v${PROJECT_VERSION}-hx1")
+else()
+	set(FTPD_STATUS_STRING "${PROJECT_NAME} v${PROJECT_VERSION}${FTPD_PATCH}")
+endif()
+
 find_package(Patch REQUIRED)
 
 if(CMAKE_EXPORT_COMPILE_COMMANDS)
@@ -66,7 +72,7 @@ endif()
 target_compile_features(${FTPD_TARGET} PRIVATE cxx_std_20)
 target_include_directories(${FTPD_TARGET} PRIVATE include)
 target_compile_definitions(${FTPD_TARGET} PRIVATE
-	STATUS_STRING="${PROJECT_NAME} v${PROJECT_VERSION}${FTPD_PATCH}"
+	STATUS_STRING="${FTPD_STATUS_STRING}"
 	IMGUI_DISABLE_OBSOLETE_FUNCTIONS=1
 	IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS=1
 )
@@ -286,7 +292,6 @@ elseif(NINTENDO_3DS)
 		return()
 	endif()
 
-
 	target_compile_definitions(${FTPD_TARGET} PRIVATE
 		ANTI_ALIAS=0
 		ImTextureID=C3D_Tex*
@@ -366,8 +371,8 @@ elseif(NINTENDO_DS)
 
 	nds_create_rom(${FTPD_TARGET}
 		NAME "${PROJECT_NAME} classic"
-		SUBTITLE1 "v${PROJECT_VERSION}${FTPD_PATCH}"
-		SUBTITLE2 "(c) 2025 mtheall"
+		SUBTITLE1 "v${PROJECT_VERSION}-hx1"
+		SUBTITLE2 "(c) 2024 mtheall"
 		ICON nds/icon.bmp
 	)
 else()
