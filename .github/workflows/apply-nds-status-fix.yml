@@ -1,0 +1,39 @@
+name: Apply NDS status-line fix
+
+on:
+  push:
+    branches:
+      - tmp/nds-status-fix-workflow
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/nds-status-line-overflow
+          fetch-depth: 0
+
+      - name: Patch NDS status line
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('source/ftpServer.cpp')
+          text = path.read_text()
+          old = '''\t\tconsoleSelect (&g_statusConsole);\n\t\tstd::printf ("\\x1b[0;0H\\x1b[32;1m%s \\x1b[36;1m%s%s",\n\t\t    STATUS_STRING,\n\t\t    m_socket ? m_socket->sockName ().name () : "Waiting on WiFi",\n\t\t    m_socket ? port : "");\n'''
+          new = '''\t\tconsoleSelect (&g_statusConsole);\n#ifdef __NDS__\n\t\tauto const statusString = STATUS_STRING + sizeof ("ftpd ") - 1;\n#else\n\t\tauto const statusString = STATUS_STRING;\n#endif\n\t\tstd::printf ("\\x1b[0;0H\\x1b[32;1m%s \\x1b[36;1m%s%s",\n\t\t    statusString,\n\t\t    m_socket ? m_socket->sockName ().name () : "Waiting on WiFi",\n\t\t    m_socket ? port : "");\n'''
+          if old not in text:
+              raise SystemExit('target snippet not found')
+          path.write_text(text.replace(old, new, 1))
+
+      - name: Commit fix
+        run: |
+          git config user.name hexcalibuild
+          git config user.email hexcalibuild@gmail.com
+          git add source/ftpServer.cpp
+          git commit -m "nds: prevent status line overflow"
+          git push origin HEAD:fix/nds-status-line-overflow
