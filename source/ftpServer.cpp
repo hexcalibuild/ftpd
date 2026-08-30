@@ -263,8 +263,13 @@ void FtpServer::draw ()
 			std::sprintf (port, ":%u", m_socket->sockName ().port ());
 
 		consoleSelect (&g_statusConsole);
+#ifdef __NDS__
+		auto const statusString = STATUS_STRING + sizeof ("ftpd ") - 1;
+#else
+		auto const statusString = STATUS_STRING;
+#endif
 		std::printf ("\x1b[0;0H\x1b[32;1m%s \x1b[36;1m%s%s",
-		    STATUS_STRING,
+		    statusString,
 		    m_socket ? m_socket->sockName ().name () : "Waiting on WiFi",
 		    m_socket ? port : "");
 
